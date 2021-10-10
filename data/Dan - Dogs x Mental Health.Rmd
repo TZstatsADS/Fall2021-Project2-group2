@@ -1,0 +1,80 @@
+---
+title: "Dogs x Covid - Mental Health"
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+#Load/Import packages
+
+#Packages Required
+packages <- c("readr", "tidyverse", "plyr", "lubridate")
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+#Load Package
+invisible(lapply(packages, library, character.only = TRUE))
+```
+
+
+```{r}
+#Housekeeping
+
+#Set Working Directory
+setwd("~/Documents/GitHub/Fall2021-Project2-group-2")
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+```{r}
+#Import Data Sets
+
+#Dog Data
+NYC_Dog_Licensing_Dataset <- read_csv("data/NYC_Dog_Licensing_Dataset.csv", 
+    col_types = cols(RowNumber = col_skip(), 
+        AnimalName = col_skip(), AnimalGender = col_skip(), 
+        AnimalBirthMonth = col_skip(), BreedName = col_skip(), 
+        Borough = col_skip(), LicenseIssuedDate = col_date(format = "%m/%d/%Y"), 
+        LicenseExpiredDate = col_skip(), 
+        `Extract Year` = col_skip(), `Unique Dog ID` = col_skip()))
+
+DogData <- count(NYC_Dog_Licensing_Dataset, "LicenseIssuedDate")
+
+        
+#Import Covid Data
+CovidData <- read_csv("data/COVID-19_Daily_Counts_of_Cases__Hospitalizations__and_Deaths.csv")
+#Standardize date format
+CovidData <- CovidData %>% mutate(DATE_OF_INTEREST = mdy(DATE_OF_INTEREST))
+
+```
+```{r}
+#plot
+
+#DATE RANGE START
+StartDate <- "2020-03-01"
+
+#PLOT FOR DOG LICENSES
+ggplot(data=DogData[DogData$LicenseIssuedDate >= StartDate,], aes(x=LicenseIssuedDate,y=freq, group=1)) + 
+geom_line()+
+  geom_point()
+
+#PLOT FOR COVID CASES
+ggplot(data=CovidData[CovidData$DATE_OF_INTEREST >= StartDate,], aes(x=DATE_OF_INTEREST,y=CASE_COUNT, group=1)) + 
+geom_line()+
+  geom_point()
+  
+# PLOT FOR COMBINED COVID CASES VS DOG LICENSES
+  ggplot() + 
+geom_line(data=DogData[DogData$LicenseIssuedDate >= StartDate,], aes(x=LicenseIssuedDate,y=freq), color='green') + 
+geom_line(data=CovidData[CovidData$DATE_OF_INTEREST >= StartDate,], aes(x=DATE_OF_INTEREST,y=CASE_COUNT), color='red')
+  
+```
+
+
