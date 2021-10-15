@@ -1,204 +1,158 @@
-#
-# This is the server logic of a Shiny web application. You can run the
-# application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-###############################Install Related Packages #######################
-if (!require("shiny")) {
-    install.packages("shiny")
-    library(shiny)
-}
-if (!require("leaflet")) {
-    install.packages("leaflet")
-    library(leaflet)
-}
-if (!require("leaflet.extras")) {
-    install.packages("leaflet.extras")
-    library(leaflet.extras)
-}
-if (!require("dplyr")) {
-    install.packages("dplyr")
-    library(dplyr)
-}
-if (!require("magrittr")) {
-    install.packages("magrittr")
-    library(magrittr)
-}
-if (!require("mapview")) {
-    install.packages("mapview")
-    library(mapview)
-}
-if (!require("leafsync")) {
-    install.packages("leafsync")
-    library(leafsync)
-}
+library(readr)
+library(shinydashboard)
+library(shiny)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(highcharter)
+library(lubridate)
+library(stringr)
+library(withr)
+library(treemap)
+library(DT)
+library(shinyBS)
+library(shinyjs)
+library(WDI)
+library(geosphere)
+library(magrittr)
+library(shinycssloaders)
+options(spinner.color="#006272")
+library(timevis)
+#library(RCurl)
+#library(jsonlite)
+library(comtradr)
+library(memoise)
+library(networkD3)
+library(promises)
+library(future)
+plan(multiprocess)
 
-#Data Processing
-total_citi_bike_df = read.csv('../data/citibike_data.csv')
-##compute the daily in and out difference for the station
-total_citi_bike_df$day_diff = total_citi_bike_df$endcount - total_citi_bike_df$startcount
-#assign each column to weekend or weekday
-total_citi_bike_df$weekend_or_weekday = ifelse(total_citi_bike_df$weekday %in% c('Saturday','Sunday'), "Weekend", "Weekday")
+## build server.R
+server <- 
+  function(input, output, session) {
+    ########################################################################
+    ## I. Domestic Violence dashboard --------------------------------------
+    #######################################################################
+          # 1. Value boxes  --------------------
+          violence_df <- read_csv('../data/family_violence_grouped.csv')
+          violence_year <- aggregate(. ~ Report_Year,select(violence_df, -Comm_Dist_Boro), FUN=sum)
+          most_recent_totals <- violence_year %>% filter(Report_Year == max(Report_Year))
+          prev_year_totals <-  violence_year %>% filter(Report_Year == max(Report_Year)-1)
+          perc_diff <- round((most_recent_totals$totals - prev_year_totals$totals)/prev_year_totals$totals*100,2)
+          
+          # ## Create Value Boxes for Percent Difference and Totals 
+          output$PercDiff <- renderValueBox({
+            valueBox(
+              value =  paste0(perc_diff, "%" ),
+              subtitle = tags$p("YoY Percent Difference - 2019 to 2020", style = "color:black"),
+              icon = icon('export', lib = 'glyphicon'),
+              color = "green"
+            )
+          })
+          
+          output$RecentTotals <- renderValueBox({
+            valueBox(
+              value =  most_recent_totals$totals,
+              subtitle = tags$p("2020 Total Reported Cases", style = "color:black"),
+              icon = icon('export', lib = 'glyphicon'),
+              color = "blue"
+            )
+          })
+          
+          # 2. Line Charts By Borough  ------------------
+          #Counts by Year and Borough 
+          output$DVTotalCountsByYear <-renderHighchart({
+            highchart() %>%
+              hc_exporting(enabled = TRUE, formAttributes = list(target = "_blank")) %>%
+              hc_chart(type = 'line') %>%
+              hc_series( list(name = 'Manhattan', data =violence_df$totals[violence_df$Comm_Dist_Boro=='Manhattan'], color='blue', marker = list(symbol = 'circle') ),
+                         list(name = 'Bronx', data =violence_df$totals[violence_df$Comm_Dist_Boro=='Bronx'], color = 'green', marker = list(symbol = 'circle') ),
+                         list(name = 'Brooklyn', data =violence_df$totals[violence_df$Comm_Dist_Boro=='Brooklyn'], color = 'pink', marker = list(symbol = 'circle') ),
+                         list(name = 'Queens', data =violence_df$totals[violence_df$Comm_Dist_Boro=='Queens'], color = 'purple',marker = list(symbol = 'circle')  ),
+                         list(name = 'Staten Island', data =violence_df$totals[violence_df$Comm_Dist_Boro=='Staten Island'], color = 'red',  marker = list(symbol = 'circle')  )
+              )%>%
+              hc_xAxis( categories = unique(violence_df$Report_Year) ) %>%
+              hc_yAxis( title = list(text = "Total")) %>%
+              hc_plotOptions(column = list(
+                dataLabels = list(enabled = F),
+                #stacking = "normal",
+                enableMouseTracking = T ) 
+              )%>%
+              hc_tooltip(table = TRUE,
+                         sort = TRUE,
+                         pointFormat = paste0( '<br> <span style="color:{point.color}">\u25CF</span>',
+                                               " {series.name}: {point.y}"),
+                         headerFormat = '<span style="font-size: 13px">Year {point.key}</span>'
+              ) %>%
+              hc_legend( layout = 'vertical', align = 'left', verticalAlign = 'top', floating = T, x = 100, y = 000 )
+          })
+          
+          # 2.1 Line graph Break down by Type  --------------------
+          output$DVCountsByCategory <-renderHighchart({
+            highchart() %>%
+              hc_exporting(enabled = TRUE, formAttributes = list(target = "_blank")) %>%
+              hc_chart(type = 'line') %>%
+              hc_series( #list(name = 'Domestic Violence Reports', data = violence_year$FAM_DIR, color='brown' , marker = list(enabled = F), lineWidth = 3 ),
+                         list(name = 'Felony Assaults, Family Members', data = violence_year$FAM_Fel_Assault, color = 'darkgreen', dashStyle = 'shortDot', marker = list(symbol = 'circle') ),
+                         list(name = 'Felony Assaults, Domestic Violence', data = violence_year$DV_Fel_Assault, color = 'darkblue', dashStyle = 'shortDot',  marker = list(symbol = 'triangle') ),
+                         list(name = 'Felony Rape, Family Members', data =  violence_year$FAM_Rape, color = 'darkblue', dashStyle = 'shortDot',  marker = list(symbol = 'triangle') ),
+                         list(name = 'Felony Rape, Domestic Violence', data =  violence_year$DV_Rape, color = 'purple', dashStyle = 'shortDot',  marker = list(symbol = 'triangle') )
+              )%>%
+              hc_xAxis( categories = unique(violence_df$Report_Year) ) %>%
+              hc_yAxis( title = list(text = "$ million, NZD"),
+                        plotLines = list(
+                          list(#label = list(text = "This is a plotLine"),
+                            color = "#ff0000",
+                            #dashStyle = 'shortDot',
+                            width = 2,
+                            value = 0 ) )
+              ) %>%
+              hc_plotOptions(column = list(
+                dataLabels = list(enabled = F),
+                #stacking = "normal",
+                enableMouseTracking = T )
+              )%>%
+              hc_tooltip(table = TRUE,
+                         sort = TRUE,
+                         pointFormat = paste0( '<br> <span style="color:{point.color}">\u25CF</span>',
+                                               " {series.name}: {point.y}"),
+                         headerFormat = '<span style="font-size: 13px">Year {point.key}</span>'
+              ) %>%
+              hc_legend( layout = 'vertical', align = 'left', verticalAlign = 'top', floating = T, x = 100, y = 000 )
+          })
+    ########################################################################
+    ## I. Resource Directory Map --------------------------------------
+    #######################################################################
+        resources_df <- read_csv("../data/Mayor_s_Office_to_End_Domestic_and_Gender-Based_Violence__Resource_Directory.csv")
+        output$res_map <- renderLeaflet({ 
+            leaflet(options = leafletOptions(zoomControl = FALSE),
+                    data = resources_df) %>% addTiles() %>%
+                    addMarkers(~LONGITUDE, ~LATITUDE, popup = paste(
+                      "<b>Name:</b>", resources_df$NAME, "<br>",
+                      "<b>Address:</b>", resources_df$ADDRESS, "<br>")) %>%
+              htmlwidgets::onRender(
+                "function(el, x) {
+                    L.control.zoom({ position: 'bottomright' }).addTo(this)
+                }"
+              ) %>%
+              addProviderTiles("CartoDB.Voyager") %>%
+              setView(lng = -73.935242, lat = 40.730610, zoom = 10)
+          })
+  }
 
-#station info
-citi_bike_station_info <- total_citi_bike_df[,c('station_id','station_name','station_longitude','station_latitude')]
-#remove the duplicates based on station id 
-citi_bike_station_info <- citi_bike_station_info[!duplicated(citi_bike_station_info[ , c("station_id")]),]
-
-#split the bike data to pre-covid and covid time period
-citi_bike_pre_covid_df = total_citi_bike_df[difftime(total_citi_bike_df$date,"2019-05-31")<=0,] #2019-05-01 ~ 2019-05-31
-citi_bike_covid_df = total_citi_bike_df[difftime(total_citi_bike_df$date,"2020-04-30")>=0,] #2020-05-01 ~ 2021-05-31
 
 
-# Define server logic required to draw a histogram
-shinyServer(function(input, output) {
 
-    ## Map Tab section
-    
-    output$left_map <- renderLeaflet({
-    
-    #adjust for weekday/weekend effect
-    if (input$adjust_time =='Overall') {
-        leaflet_plt_df <- citi_bike_pre_covid_df %>% 
-                            group_by(station_id) %>%
-                            summarise(total_start_count = sum(startcount),
-                                      total_end_count = sum(endcount),
-                                      total_day_diff = sum(day_diff),
-                                      total_diff_percentage = sum(day_diff)/sum(startcount),
-                            ) %>% left_join(citi_bike_station_info,by='station_id')
-    } else {
-        leaflet_plt_df <- citi_bike_pre_covid_df %>% 
-                            filter(weekend_or_weekday == input$adjust_time) %>%
-                            group_by(station_id) %>%
-                                summarise(total_start_count = sum(startcount),
-                                          total_end_count = sum(endcount),
-                                          total_day_diff = sum(day_diff),
-                                          total_diff_percentage = sum(day_diff)/sum(startcount),
-                                ) %>% left_join(citi_bike_station_info,by='station_id')
-                            } 
 
-        
-    map_2019 <- leaflet_plt_df %>%
-         leaflet(options = leafletOptions(minZoom = 11, maxZoom = 13)) %>%
-         addTiles() %>%
-         addProviderTiles("CartoDB.Positron",
-                          options = providerTileOptions(noWrap = TRUE)) %>%
-         setView(-73.9834,40.7504,zoom = 12)
-     
-     if (input$adjust_score == 'start_cnt') {
-         map_2019 %>%
-             addHeatmap(
-                        lng=~station_longitude,
-                        lat=~station_latitude,
-                        intensity=~total_start_count,
-                        max=4000,
-                        radius=8,
-                        blur=10)
-     }else if (input$adjust_score == 'end_cnt') {
-         map_2019 %>%
-             addHeatmap(
-                        lng=~station_longitude,
-                        lat=~station_latitude,
-                        intensity=~total_end_count,
-                        max=4000,
-                        radius=8,
-                        blur=10)
-     } else if (input$adjust_score == 'day_diff_absolute'){
-         map_2019 %>%
-             addHeatmap(
-                        lng=~station_longitude,
-                        lat=~station_latitude,
-                        intensity=~total_day_diff,
-                        max=50,
-                        radius=8,
-                        blur=10)
-         
-     }else if (input$adjust_score == 'day_diff_percentage'){
-         map_2019 %>%
-             addHeatmap(
-                        lng=~station_longitude,
-                        lat=~station_latitude,
-                        intensity=~total_diff_percentage,#change to total day diff percentage
-                        max=0.1,
-                        radius=8,
-                        blur=10)
-         
-     }
-     }) #left map plot
-    
-    output$right_map <- renderLeaflet({
-        #adjust for weekday/weekend effect
-        if (input$adjust_time =='Overall') {
-            leaflet_plt_df <- citi_bike_covid_df %>% 
-                group_by(station_id) %>%
-                summarise(total_start_count = sum(startcount),
-                          total_end_count = sum(endcount),
-                          total_day_diff = sum(day_diff),
-                          total_diff_percentage = sum(day_diff)/sum(startcount),
-                ) %>% left_join(citi_bike_station_info,by='station_id')
-        } else {
-            leaflet_plt_df <- citi_bike_covid_df %>% 
-                filter(weekend_or_weekday == input$adjust_time) %>%
-                group_by(station_id) %>%
-                summarise(total_start_count = sum(startcount),
-                          total_end_count = sum(endcount),
-                          total_day_diff = sum(day_diff),
-                          total_diff_percentage = sum(day_diff)/sum(startcount),
-                ) %>% left_join(citi_bike_station_info,by='station_id')
-        } 
-        #initial the map to plot on
-        map_2020 <- leaflet_plt_df %>%
-            leaflet(options = leafletOptions(minZoom = 11, maxZoom = 13)) %>%
-            addTiles() %>%
-            addProviderTiles("CartoDB.Positron",
-                             options = providerTileOptions(noWrap = TRUE)) %>%
-            setView(-73.9834,40.7504,zoom = 12) 
-        
-        if (input$adjust_score == 'start_cnt') {
-            map_2020 %>%
-                addHeatmap(
-                           lng=~station_longitude,
-                           lat=~station_latitude,
-                            intensity=~total_start_count, #change to total start count
-                            max=4000,
-                            radius=8,
-                           blur=10)
-        }else if (input$adjust_score == 'end_cnt') {
-            map_2020 %>%
-                addHeatmap(
-                           lng=~station_longitude,
-                           lat=~station_latitude,
-                           intensity=~total_end_count,#change to total end count
-                           max=4000,
-                           radius=8,
-                           blur=10)
-        } else if (input$adjust_score == 'day_diff_absolute'){
-            map_2020 %>%
-                addHeatmap(
-                           lng=~station_longitude,
-                           lat=~station_latitude,
-                           intensity=~total_day_diff,#change to total day diff
-                           max=50,
-                           radius=8,
-                           blur=10)
-            
-        }else if (input$adjust_score == 'day_diff_percentage'){
-            map_2020 %>%
-                addHeatmap(
-                           lng=~station_longitude,
-                           lat=~station_latitude,
-                           intensity=~total_diff_percentage,#change to total day diff percentage
-                           max=0.1,
-                           radius=8,
-                           blur=10)
-            
-        }
-        
-    }) #right map plot
 
-})
+
+
+
+
+
+
+
+
+
 
 
