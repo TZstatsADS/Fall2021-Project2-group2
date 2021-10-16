@@ -1,30 +1,24 @@
-library(readr)
-library(shinydashboard)
-library(shiny)
-library(dplyr)
-library(tidyr)
-library(ggplot2)
-library(highcharter)
-library(lubridate)
-library(stringr)
-library(withr)
-library(treemap)
-library(DT)
-library(shinyBS)
-library(shinyjs)
-library(WDI)
-library(geosphere)
-library(magrittr)
-library(shinycssloaders)
+#Load/Import packages
+
+#Load/Import packages
+
+#Packages Required
+packages <- c("readr", "tidyverse", "dplyr", "lubridate","igraph","shinydashboard",
+              "shiny","plyr","tidyr","ggplot2", "highcharter","lubridate","stringr","withr","treemap", "DT","shinyBS", "shinyjs", "WDI",
+              "geosphere", "magrittr", "shinycssloaders","timevis", "comtradr", "memoise", "networkD3","promises","future")
+
+# Install packages not yet installed
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(installed_packages == FALSE)) {
+  install.packages(packages[!installed_packages])
+}
+
+#Load Package
+invisible(lapply(packages, library, character.only = TRUE))
+
 options(spinner.color="#006272")
-library(timevis)
 #library(RCurl)
 #library(jsonlite)
-library(comtradr)
-library(memoise)
-library(networkD3)
-library(promises)
-library(future)
 plan(multiprocess)
 
 ## build server.R

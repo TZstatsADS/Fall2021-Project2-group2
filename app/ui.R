@@ -39,23 +39,29 @@ header <-
 ## 2. siderbar ------------------------------
 siderbar <- 
   dashboardSidebar( 
-    width = 200,
+    width = 250,
     sidebarMenu(
       id = 'sidebar',
       style = "position: relative; overflow: visible;",
       #style = "position: relative; overflow: visible; overflow-y:scroll",
       #style = 'height: 90vh; overflow-y: auto;',
       
-      ## 1st tab show the Main dashboard -----------
-      menuItem( "Domestic Violence Counts", tabName = 'dv_dashboard', icon = icon('dashboard') ),
+      ## 1st tab show the Intro & Covid dashboard -----------
+      menuItem( "Home", tabName = 'Home', icon = icon('dashboard') ),
       
-      ## Map with Locations of Help Centers --------------
+      ## 2nd tab show the Domestic Violence dashboard -----------
+      menuItem( "COVID-19 Overview", tabName = 'covid_dash', icon = icon('dashboard') ),
+      
+      ## 3rd tab show the Domestic Violence dashboard -----------
+      menuItem( "Domestic Violence Instances", tabName = 'dv_dashboard', icon = icon('dashboard') ),
+      
+      ## 4th Map with Locations of Help Centers --------------
       menuItem("Resource Locations Directory", tabName = 'resource_dir', icon = icon("map-marker-alt") ),
       
-      ## Covid Data and Dog Licenses ----------
-      menuItem( "COVID Cases to Dog Licenses", tabName = "covid_cases", icon = icon('barcode'), startExpanded = F),
+      ## 5th Covid Data and Dog Licenses ----------
+      menuItem( "Pet Companionship", tabName = "pets", icon = icon('barcode'), startExpanded = F),
       
-       ## Call Center  -------------------------
+      ## 6th Call Center  -------------------------
       menuItem("Call Center Data", tabName = 'call_centers', icon = icon('search') )
     )
   )
@@ -137,6 +143,59 @@ body <- dashboardBody(
   
   ## 3.1 Dashboard body --------------
   tabItems(
+    
+    #############################################################
+    # Home Tab
+    ############################################################
+    tabItem( tabName = 'Home',
+             ## contents for the dashboard tab
+             # 1.1 Value  Boxes ---------------------------
+             div(class = 'scroller_anchor'),
+             div(class = 'scroller', ) ,
+             
+             #TITLE
+             h1(style = "text-align: center;","Evaluating Home Life During COVID-19"),
+             br(),
+             
+             #IMAGE
+             img(src = "https://images.unsplash.com/photo-1606787504667-961f789e78e6?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2940&q=80",
+                 width = 500, style="display: block; margin-left: auto; margin-right: auto;"),
+             br(),
+             br(),
+             
+             #INTRO
+             h4("When COVID-19 began spreading rapidly in NYC the city began shutting down, 
+               forcing business and social activities to come to a halt.  As a result, many New Yorkers
+               were stuck in their homes far longer than many were used to.  In this app, 
+               using the data from the NYC Department of Health and Mental Hygiene & NYC Open Data and inspiration from
+               the Mayor de Blasio' ThriveNYC, Mental Illness, and Domestic Violence programs, we offer a look at some
+               of the effects of COVID on domestic life."),
+    ),
+    
+    #############################################################
+    # COVID Tab
+    ############################################################
+    tabItem( tabName = 'covid_dash',
+             ## contents for the dashboard tab
+             # 1.1 Value  Boxes ---------------------------
+             div(class = 'scroller_anchor'),
+             div(class = 'scroller', ) ,
+             
+             #TITLE
+             h1(style = "text-align: center;","COVID-19 in NYC"),
+             br(),
+             
+             #IMAGE
+             img(src = "https://c.files.bbci.co.uk/D505/production/_115033545_gettyimages-1226314512.jpg",
+                 width = 500, style="display: block; margin-left: auto; margin-right: auto;"),
+             br(),
+             br(),
+             
+             #INTRO
+             h4("LOREM IPSUM"),
+    ),
+    
+    
     #############################################################
     # Domestic Violence Tab
     ############################################################
@@ -146,7 +205,7 @@ body <- dashboardBody(
              div(class = 'scroller_anchor'),
              div(class = 'scroller', ) ,
              
-             h2(paste0("Domestic Violence in NYC")),
+             h2("Domestic Violence in NYC",style = "text-align: center;"),
              fluidRow(
                valueBoxOutput("PercDiff"),
                valueBoxOutput("RecentTotals")
@@ -157,23 +216,48 @@ body <- dashboardBody(
              fluidRow( column( width = 6,h4("Domestic Violence Case Reports By Borough", align = 'center'), highchartOutput('DVTotalCountsByYear') ),
                        column( width = 6,h4("Domestic Violence Case Reports by Category", align = 'center'), highchartOutput('DVCountsByCategory') )
              )
-   ),
-   #############################################################
-   # Resource Directory Tab 
-   ############################################################
-     tabItem(
-       ##
-       tabName = 'resource_dir',
-       # Map 
-       div(class="outer",
-           h3(" Domestic Violence Resources", align="center", style="color:#045a8d"),
-           # map output
-           leafletOutput("res_map", width="100%", height=620),
-       )
-       
-     ) 
- )
-
+    ),
+    
+    
+    #############################################################
+    # Resource Directory Tab 
+    ############################################################
+    tabItem(
+      ##
+      tabName = 'resource_dir',
+      # Map 
+      div(class="outer",
+          h3(" Domestic Violence Resources", align="center", style="color:#045a8d"),
+          # map output
+          leafletOutput("res_map", width="100%", height=620),
+      )
+    ),
+    
+    #############################################################
+    # Pet Companionship Tab
+    ############################################################
+    tabItem( tabName = 'pets',
+             ## contents for the dashboard tab
+             # 1.1 Value  Boxes ---------------------------
+             div(class = 'scroller_anchor'),
+             div(class = 'scroller', ) ,
+             
+             h2("Animal Companionship",style = "text-align: center;"),
+             img(src = "https://s3.amazonaws.com/cdn-origin-etr.akc.org/wp-content/uploads/2017/12/12194337/Yellow-Lab-High-Five.jpg", 
+                 width = 500, style="display: block; margin-left: auto; margin-right: auto;"),
+             
+             br(),
+             p("Since the dawn of time, animals have provided humans comfort and companionship.  
+            When COVID-19 became prevalent in NYC and the city was forced to suddenly shut down, 
+            many New Yorkers living alone found themselves growing lonely as they were effectively stuck inside their homes until phased reopening began."),
+             br(),
+             
+             p("Let us take a look at the effects of COVID in the city and the application for dog licenses.")
+    )
+    
+    
+  )
+  
 )
 
 
