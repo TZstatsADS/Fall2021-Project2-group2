@@ -27,18 +27,28 @@ server <-
     ########################################################################
     ## I. Domestic Violence dashboard --------------------------------------
     #######################################################################
-          # 1. Value boxes  --------------------
+          # Domestic Violence Data Loading and Processing 
           violence_df <- read_csv('../data/family_violence_grouped.csv')
           violence_year <- aggregate(. ~ Report_Year,select(violence_df, -Comm_Dist_Boro), FUN=sum)
           most_recent_totals <- violence_year %>% filter(Report_Year == max(Report_Year))
           prev_year_totals <-  violence_year %>% filter(Report_Year == max(Report_Year)-1)
+          two_year_lag_total <- violence_year %>% filter(Report_Year == max(Report_Year)-2)
           perc_diff <- round((most_recent_totals$totals - prev_year_totals$totals)/prev_year_totals$totals*100,2)
+          prev_perc_diff <- round((prev_year_totals$totals - two_year_lag_total$totals)/two_year_lag_total$totals*100,2)
           
           # ## Create Value Boxes for Percent Difference and Totals 
           output$PercDiff <- renderValueBox({
             valueBox(
               value =  paste0(perc_diff, "%" ),
               subtitle = tags$p("YoY Percent Difference - 2019 to 2020", style = "color:black"),
+              icon = icon('export', lib = 'glyphicon'),
+              color = "red"
+            )
+          })
+          output$PercDiffPrev <- renderValueBox({
+            valueBox(
+              value =  paste0(prev_perc_diff, "%" ),
+              subtitle = tags$p("YoY Percent Difference - 2018 to 2019", style = "color:black"),
               icon = icon('export', lib = 'glyphicon'),
               color = "green"
             )
@@ -66,7 +76,7 @@ server <-
                          list(name = 'Staten Island', data =violence_df$totals[violence_df$Comm_Dist_Boro=='Staten Island'], color = 'red',  marker = list(symbol = 'circle')  )
               )%>%
               hc_xAxis( categories = unique(violence_df$Report_Year) ) %>%
-              hc_yAxis( title = list(text = "Total")) %>%
+              hc_yAxis( title = list(text = "Case Count")) %>%
               hc_plotOptions(column = list(
                 dataLabels = list(enabled = F),
                 #stacking = "normal",
@@ -81,25 +91,73 @@ server <-
               hc_legend( layout = 'vertical', align = 'left', verticalAlign = 'top', floating = T, x = 100, y = 000 )
           })
           
-          # 2.1 Line graph Break down by Type  --------------------
+          # Counts by Violence Type  
           output$DVCountsByCategory <-renderHighchart({
             highchart() %>%
               hc_exporting(enabled = TRUE, formAttributes = list(target = "_blank")) %>%
               hc_chart(type = 'line') %>%
-              hc_series( #list(name = 'Domestic Violence Reports', data = violence_year$FAM_DIR, color='brown' , marker = list(enabled = F), lineWidth = 3 ),
+              hc_series( 
                          list(name = 'Felony Assaults, Family Members', data = violence_year$FAM_Fel_Assault, color = 'darkgreen', dashStyle = 'shortDot', marker = list(symbol = 'circle') ),
                          list(name = 'Felony Assaults, Domestic Violence', data = violence_year$DV_Fel_Assault, color = 'darkblue', dashStyle = 'shortDot',  marker = list(symbol = 'triangle') ),
                          list(name = 'Felony Rape, Family Members', data =  violence_year$FAM_Rape, color = 'darkblue', dashStyle = 'shortDot',  marker = list(symbol = 'triangle') ),
                          list(name = 'Felony Rape, Domestic Violence', data =  violence_year$DV_Rape, color = 'purple', dashStyle = 'shortDot',  marker = list(symbol = 'triangle') )
               )%>%
               hc_xAxis( categories = unique(violence_df$Report_Year) ) %>%
-              hc_yAxis( title = list(text = "$ million, NZD"),
-                        plotLines = list(
-                          list(#label = list(text = "This is a plotLine"),
-                            color = "#ff0000",
-                            #dashStyle = 'shortDot',
-                            width = 2,
-                            value = 0 ) )
+              hc_yAxis( title = list(text = "Case Count")
+              ) %>%
+              hc_plotOptions(column = list(
+                dataLabels = list(enabled = F),
+                #stacking = "normal",
+                enableMouseTracking = T )
+              )%>%
+              hc_tooltip(table = TRUE,
+                         sort = TRUE,
+                         pointFormat = paste0( '<br> <span style="color:{point.color}">\u25CF</span>',
+                                               " {series.name}: {point.y}"),
+                         headerFormat = '<span style="font-size: 13px">Year {point.key}</span>'
+              ) %>%
+              hc_legend( layout = 'vertical', align = 'left', verticalAlign = 'top', floating = T, x = 100, y = 000 )
+          })
+          
+          #Bar Charts for Page Visits to HOPE Website 
+          page_visits <- read_csv("../data/hope_webpage_visits.csv")
+          agg_visits <- aggregate(. ~ year,select(page_visits, -Date), FUN=sum)
+          output$PageVisitsByYear <-renderHighchart({
+            highchart() %>%
+              hc_exporting(enabled = TRUE, formAttributes = list(target = "_blank")) %>%
+              hc_chart(type = 'column') %>%
+              hc_series(
+                list(name = 'Total Page Visits', data = agg_visits$Visits, color = '#87CEFA' ),
+                list(name = 'Total New Visits', data = agg_visits$`New Visitors`, color = 'darkblue' )
+                 )%>%
+              hc_xAxis( categories = unique(agg_visits$year) ) %>%
+              hc_yAxis( title = list(text = "Visit Count")
+              ) %>%
+              hc_plotOptions(column = list(
+                dataLabels = list(enabled = F),
+                #stacking = "normal",
+                enableMouseTracking = T )
+              )%>%
+              hc_tooltip(table = TRUE,
+                         sort = TRUE,
+                         pointFormat = paste0( '<br> <span style="color:{point.color}">\u25CF</span>',
+                                               " {series.name}: {point.y}"),
+                         headerFormat = '<span style="font-size: 13px">Year {point.key}</span>'
+              ) %>%
+              hc_legend( layout = 'vertical', align = 'left', verticalAlign = 'top', floating = T, x = 100, y = 000 )
+          })
+          output$PageVisitsbyType <-renderHighchart({
+            highchart() %>%
+              hc_exporting(enabled = TRUE, formAttributes = list(target = "_blank")) %>%
+              hc_chart(type = 'column') %>%
+              hc_series(
+                list(name = 'Visits From Social Media', data = agg_visits$Visits[agg_visits$year==2020], color = '#87CEFA' )
+                # list(name = 'Neighborhood Services Page', data = agg_visits$`Neigh Serv`[agg_visits$year==2020], color = 'darkblue' ),
+                # list(name = 'Family Justice Centers', data = agg_visits$`Family Justice Center`[agg_visits$year==2020], color = 'darkblue' ),
+                # list(name = 'State Service Centers', data = agg_visits$`City State Services`[agg_visits$year==2020], color = 'darkblue' ),
+                # list(name = 'GBV', data = agg_visits$`Learn GBV`[agg_visits$year==2020], color = 'darkblue' )
+              )%>%
+              hc_yAxis( title = list(text = "Visit Count")
               ) %>%
               hc_plotOptions(column = list(
                 dataLabels = list(enabled = F),

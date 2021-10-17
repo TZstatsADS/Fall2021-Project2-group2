@@ -96,19 +96,19 @@ body <- dashboardBody(
     tags$style(HTML('
                        /* logo */
                        .skin-blue .main-header .logo {
-                       background-color: #FF7F50;
+                       background-color: #49B9F9;
                        }
                        /* logo when hovered */
                        .skin-blue .main-header .logo:hover {
-                       background-color: #FF7F50;
+                       background-color: #49B9F9;
                        }
                        /* navbar (rest of the header) */
                        .skin-blue .main-header .navbar {
-                       background-color: #FF7F50;
+                       background-color: #49B9F9;
                        }
                        /* active selected tab in the sidebarmenu */
                        .skin-blue .main-sidebar .sidebar .sidebar-menu .active a{
-                       background-color: #FF7F50;
+                       background-color: #49B9F9;
                                  }
                        ')
     ),
@@ -205,17 +205,22 @@ body <- dashboardBody(
              div(class = 'scroller_anchor'),
              div(class = 'scroller', ) ,
              
-             h2("Domestic Violence in NYC",style = "text-align: center;"),
+             h2("Domestic Violence Cases Over Time in NYC",style = "text-align: center;"),
              fluidRow(
+               valueBoxOutput("RecentTotals"),
                valueBoxOutput("PercDiff"),
-               valueBoxOutput("RecentTotals")
+               valueBoxOutput("PercDiffPrev")
              ),
              
              ## 1.2 Time serise plot ----------------------------------------
              h2(paste0("Reported Cases 2017 to 2020")),
              fluidRow( column( width = 6,h4("Domestic Violence Case Reports By Borough", align = 'center'), highchartOutput('DVTotalCountsByYear') ),
                        column( width = 6,h4("Domestic Violence Case Reports by Category", align = 'center'), highchartOutput('DVCountsByCategory') )
-             )
+             ),
+             h2("Visits to NYC HOPE Website - Outreach During COVID"),
+             fluidRow(highchartOutput('PageVisitsByYear')),
+             fluidRow(highchartOutput('PageVisitsbyType'))
+             
     ),
     
     
@@ -225,6 +230,9 @@ body <- dashboardBody(
     tabItem(
       ##
       tabName = 'resource_dir',
+      p("The Mayor’s Office to End Domestic and Gender-Based Violence coordinates 
+        the citywide delivery of domestic violence services. This map shows the 
+        current locations of that offer domestic violence related services."),
       # Map 
       div(class="outer",
           h3(" Domestic Violence Resources", align="center", style="color:#045a8d"),
