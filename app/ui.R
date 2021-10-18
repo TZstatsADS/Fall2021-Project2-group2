@@ -166,9 +166,13 @@ body <- dashboardBody(
              h4("When COVID-19 began spreading rapidly in NYC the city began shutting down, 
                forcing business and social activities to come to a halt.  As a result, many New Yorkers
                were stuck in their homes far longer than many were used to.  In this app, 
-               using the data from the NYC Department of Health and Mental Hygiene & NYC Open Data and inspiration from
-               the Mayor de Blasio' ThriveNYC, Mental Illness, and Domestic Violence programs, we offer a look at some
-               of the effects of COVID on domestic life.")
+               using the data from the NYC Open Data, focusing on resources from the Mayor's Office 
+               to End Domestic and Gender-Based violence, we offer a look at some
+               of the effects of COVID on domestic life."),
+             br(), 
+             h4("Intended users for this dashboard are users from the Mayor's Office 
+               to End Domestic and Gender-Based violence, indivduals running NYC's HOPE website, 
+                and potentially domestic violence resource centers in NYC.")
     ),
     
     #############################################################
@@ -270,7 +274,7 @@ body <- dashboardBody(
              ),
              
              ## 1.2 Time serise plot ----------------------------------------
-             h2(paste0("Reported Cases 2017 to 2020")),
+             h2(paste0("Reported Cases 2017 to 2020"), align = "center"),
              fluidRow( column( width = 6,h4("Domestic Violence Case Reports By Borough", align = 'center'), highchartOutput('DVTotalCountsByYear') ),
                        column( width = 6,h4("Domestic Violence Case Reports by Category", align = 'center'), highchartOutput('DVCountsByCategory') )
              ),
@@ -279,8 +283,14 @@ body <- dashboardBody(
                 valueBoxOutput("PercDiffVisits"),
                valueBoxOutput("PercDiffNewVisits")
              ),
+             br(),
+             h4("Visits to HOPE Overtime", align = 'center'),
              fluidRow(highchartOutput('PageVisitsByYear')),
-             fluidRow(highchartOutput('PageVisitsbyType'))
+             h4("Visits to HOPE by Category", align = 'center'),
+             fluidRow(highchartOutput('PageVisitsbyType')),
+             br(),
+             h4("Visits to HOPE Website Compared to COVID Cases", align = 'center'),
+             fluidRow(plotOutput('VisitsCovidCases'))
              
     ),
     

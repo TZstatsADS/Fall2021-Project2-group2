@@ -120,8 +120,13 @@ server <-
     })
     
     #Bar Charts for Page Visits to HOPE Website 
-    page_visits <- read_csv("hope_webpage_visits.csv")
+    page_visits <- read_csv("hope_webpage_visits.csv",col_types = cols(Date = col_date(format = "%m/%d/%y")))
     agg_visits <- aggregate(. ~ year,select(page_visits, -Date), FUN=sum)
+    
+    #Import Covid Data
+    CovidData <- read_csv("COVID-19_Daily_Counts_of_Cases__Hospitalizations__and_Deaths.csv")
+    #Standardize date format
+    CovidData <- CovidData %>% mutate(DATE_OF_INTEREST = mdy(DATE_OF_INTEREST))
     
     covid_totals <-  agg_visits%>% filter(year == 2020)
     prev_year <- agg_visits%>% filter(year == 2019)
@@ -131,7 +136,7 @@ server <-
     output$PercDiffVisits <- renderValueBox({
       valueBox(
         value =  paste0(visits_perc_diff, "%" ),
-        subtitle = tags$p("COVID Outreach Increase - Website Visitors", style = "color:black"),
+        subtitle = tags$p("COVID Increase-Website Visitors", style = "color:black"),
         icon = icon('export', lib = 'glyphicon'),
         color = "green"
       )
@@ -140,7 +145,7 @@ server <-
     output$PercDiffNewVisits <- renderValueBox({
       valueBox(
         value =  paste0(newvisits_perc_diff, "%" ),
-        subtitle = tags$p("COVID Outreach Increase - Website New Visitors", style = "color:black"),
+        subtitle = tags$p("COVID Increase -New Visitors", style = "color:black"),
         icon = icon('export', lib = 'glyphicon'),
         color = "green"
       )
@@ -194,6 +199,26 @@ server <-
         hc_legend( layout = 'vertical', align = 'left', verticalAlign = 'top', floating = T, x = 100, y = 000 )
       
     })
+    
+    output$VisitsCovidCases <- renderPlot({
+      ggplot() +
+        geom_point() +
+        geom_line(data=page_visits, aes(x=Date,y=Visits), color='blue')+ 
+        geom_line(data=CovidData, aes(x=DATE_OF_INTEREST,y=CASE_COUNT), color='pink')+
+        #labels
+        geom_vline(xintercept = as.numeric(as.Date("2020-03-22")), linetype=4,color='red') +
+        geom_text(aes(x = as.Date("2020-03-22"), label="March 22 NYC PAUSE \n", y=5000), colour="red", angle=90, text=element_text(size=20)) +
+        geom_vline(xintercept = as.numeric(as.Date("2020-06-08")), linetype=4,color='red') +
+        geom_text(aes(x = as.Date("2020-06-08"), label="June 8 PHASE 1 REOPEN \n", y=5000), colour="red", angle=90, text=element_text(size=20))+
+        geom_vline(xintercept = as.numeric(as.Date("2020-06-22")), linetype=4,color='red') +
+        geom_text(aes(x = as.Date("2020-06-22"), label="June 22 PHASE 2 REOPEN \n", y=5000), colour="red", angle=90, text=element_text(size=20))+
+        geom_vline(xintercept = as.numeric(as.Date("2020-07-06")), linetype=4,color='red') +
+        geom_text(aes(x = as.Date("2020-07-06"), label="July 6 PHASE 3 REOPEN \n", y=5000), colour="red", angle=90, text=element_text(size=20))+
+        geom_vline(xintercept = as.numeric(as.Date("2020-07-20")), linetype=4,color='red') +
+        geom_text(aes(x = as.Date("2020-07-20"), label="July 20 PHASE 4 REOPEN \n", y=5000), colour="red", angle=90, text=element_text(size=20))+ 
+        labs(x= "Date", y= "Visits", color = c("Page Visits" = "blue", "Covid Cases" = "pink"))
+    })
+    
     ########################################################################
     ## I. Resource Directory Map --------------------------------------
     #######################################################################
@@ -231,10 +256,6 @@ server <-
     
     NYC_Dog_Licensing_Dataset <- count(NYC_Dog_Licensing_Dataset,
                                        "LicenseIssuedDate")
-    #Import Covid Data
-    CovidData <- read_csv("COVID-19_Daily_Counts_of_Cases__Hospitalizations__and_Deaths.csv")
-    #Standardize date format
-    CovidData <- CovidData %>% mutate(DATE_OF_INTEREST = mdy(DATE_OF_INTEREST))
     
     #value boxes
     output$dogRecentTotals <- renderValueBox({
