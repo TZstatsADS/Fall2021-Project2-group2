@@ -12,6 +12,7 @@ library(DT)
 library(shinyBS)
 library(shinyjs)
 library(WDI)
+library(gganimate)
 if (!require("leaflet")) {
   install.packages("leaflet")
   library(leaflet)
@@ -238,36 +239,79 @@ body <- dashboardBody(
           h3(" Domestic Violence Resources", align="center", style="color:#045a8d"),
           # map output
           leafletOutput("res_map", width="100%", height=620),
+      ),
+      #Map2 
+      div(class="outer",
+          h3(" Animal Resources", align="center", style="color:#045a8d"),
+          # map output
+          leafletOutput("res_map2", width="100%", height=620),
       )
     ),
     
     #############################################################
     # Pet Companionship Tab
     ############################################################
-    tabItem( tabName = 'pets',
-             ## contents for the dashboard tab
-             # 1.1 Value  Boxes ---------------------------
-             div(class = 'scroller_anchor'),
-             div(class = 'scroller', ) ,
-             
-             h2("Animal Companionship",style = "text-align: center;"),
-             img(src = "https://s3.amazonaws.com/cdn-origin-etr.akc.org/wp-content/uploads/2017/12/12194337/Yellow-Lab-High-Five.jpg", 
-                 width = 500, style="display: block; margin-left: auto; margin-right: auto;"),
-             
-             br(),
-             p("Since the dawn of time, animals have provided humans comfort and companionship.  
-            When COVID-19 became prevalent in NYC and the city was forced to suddenly shut down, 
-            many New Yorkers living alone found themselves growing lonely as they were effectively stuck inside their homes until phased reopening began."),
-             br(),
-             
-             p("Let us take a look at the effects of COVID in the city and the application for dog licenses.")
-    )
-    
-    
-  )
-  
+    tabItem(tabName = 'pets',
+            ## contents for the dashboard tab
+            # 1.1 Value  Boxes ---------------------------
+            div(class = 'scroller_anchor'),
+            div(class = 'scroller', ) ,
+            
+            #intro
+            fluidRow(
+              h2("Animal Companionship",style = "text-align: center;"),
+              img(src = "https://s3.amazonaws.com/cdn-origin-etr.akc.org/wp-content/uploads/2017/12/12194337/Yellow-Lab-High-Five.jpg", 
+                  width = 500, style="display: block; margin-left: auto; margin-right: auto;"),
+              
+              br(),
+              p("Since the dawn of time, animals have provided humans comfort and companionship.  
+               When COVID-19 became prevalent in NYC and the city was forced to suddenly shut down, 
+               many New Yorkers living alone found themselves growing lonely as they were effectively stuck inside their homes until phased reopening began."),
+              br()
+            ),
+            
+            #DATA SECTION
+            
+            fluidRow(
+              column(10, align="center",
+                     valueBoxOutput("dogRecentTotals"),
+                     valueBoxOutput("dogPercDiff")
+              )),
+            
+            fluidRow(
+              #data source check box
+              column(6, h3("Additional Data Sources"), 
+                     checkboxInput("dogInput", "NYC COVID-19 Case Counts", value = TRUE)                         
+              ),
+              
+              #date chooser
+              column(6,
+                     dateRangeInput("dogDatesInput", h3("Date range"),
+                                    start = "2019-07-20",
+                                    end = "2021-03-17",
+                                    max = "2021-03-17"
+                     )
+              )),
+            
+            #output section
+            fluidRow(
+              br(),
+              br(),
+              plotOutput("dogDataPlot"),
+              br(),
+              br()
+            ),
+            
+            #analysis section
+            fluidRow(
+              br(),
+              h2("Analysis",style = "text-align: center;"),
+              p("The data shows a significant spike of applications for dog licenses after Phase 4 reopening, Leading us to believe that after the long drawn out lock-down,
+               NYC residents were eager to adopt a new friend in their home, possibly for the sake of companionship and to aid mental health.")
+            )             
+    )  
+  ) 
 )
-
 
 ## put UI together --------------------
 ui <- 
