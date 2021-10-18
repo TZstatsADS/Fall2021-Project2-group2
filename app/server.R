@@ -244,12 +244,10 @@ server <-
     
     #reactive code
     output$dogDataPlot <- renderPlot({
-      
       #PLOT FOR DOG LICENSES
       dPlot <- ggplot() +
         geom_point() +
         geom_line(data=NYC_Dog_Licensing_Dataset[NYC_Dog_Licensing_Dataset$LicenseIssuedDate >= input$dogDatesInput[1] & NYC_Dog_Licensing_Dataset$LicenseIssuedDate <= input$dogDatesInput[2],], aes(x=LicenseIssuedDate,y=freq), color='blue')+ 
-        
         #labels
         geom_vline(xintercept = as.numeric(as.Date("2020-03-22")), linetype=4,color='red') +
         geom_text(aes(x = as.Date("2020-03-22"), label="March 22 NYC PAUSE \n", y=5000), colour="red", angle=90, text=element_text(size=20)) +
@@ -269,15 +267,117 @@ server <-
         }
     })
     
+  
+
+
+
+    ########################################################################
+    ## COVID_19 Data
+    ########################################################################
+    ##Import and process covid_19 data
+    covid_df <- read_csv("../data/COVID-19_Daily_Counts_of_Cases__Hospitalizations__and_Deaths.csv")
+    covid_df <- covid_df %>% mutate(DATE_OF_INTEREST = mdy(DATE_OF_INTEREST))
+    
+    output$CovidTotalCaseCount2020 <- renderValueBox({
+      valueBox(
+          value =  paste0(
+            sum(covid_df[covid_df$DATE_OF_INTEREST >= "2020-02-29" & covid_df$DATE_OF_INTEREST <= "2020-12-31",]$CASE_COUNT)
+          ),
+          subtitle = tags$p("2020 COVID-19 Case-Count in NYC 02/29-12/31", style = "color:black"),
+          icon = icon('export', lib = 'glyphicon'),
+          color = "red"
+        )
+    })
+      
+    
+    output$CovidTotalDeathCount2020 <- renderValueBox({
+      valueBox(
+        value =  paste0(
+          sum(covid_df[covid_df$DATE_OF_INTEREST >= "2020-02-29" & covid_df$DATE_OF_INTEREST <= "2020-12-31",]$DEATH_COUNT)
+        ),
+        subtitle = tags$p("2020 COVID-19 Death-Count in NYC 02/29-12/31", style = "color:black"),
+        icon = icon('export', lib = 'glyphicon'),
+        color = "red"
+      )
+    })
+    
+    output$CovidTotalHospitalizationCount2020 <- renderValueBox({
+      valueBox(
+        value =  paste0(
+          sum(covid_df[covid_df$DATE_OF_INTEREST >= "2020-02-29" & covid_df$DATE_OF_INTEREST <= "2020-12-31",]$HOSPITALIZED_COUNT)
+        ),
+        subtitle = tags$p("2020 COVID-19 Hospitalized-Count in NYC 02/29-12/31", style = "color:black"),
+        icon = icon('export', lib = 'glyphicon'),
+        color = "red"
+      )
+    })
+    
+    output$Coviddiffcases <- renderValueBox({
+      valueBox(
+        value =  paste0(round(((sum(covid_df[covid_df$DATE_OF_INTEREST >= "2021-03-01" & covid_df$DATE_OF_INTEREST <= "2021-10-05",]$CASE_COUNT)-
+                                  sum(covid_df[covid_df$DATE_OF_INTEREST >= "2020-03-01" & covid_df$DATE_OF_INTEREST <= "2020-10-05",]$CASE_COUNT))/
+                                 sum(covid_df[covid_df$DATE_OF_INTEREST >= "2020-03-01" & covid_df$DATE_OF_INTEREST <= "2020-10-05",]$CASE_COUNT)*100),
+                              digits=2),"%"
+        ),
+        subtitle = tags$p("2020-2021 Percentage Changes of Total cases", style = "color:black"),
+        icon = icon('export', lib = 'glyphicon'),
+        color = "red"
+      )
+    })
+    
+      output$Coviddiffdeaths <- renderValueBox({
+        valueBox(
+          value =  paste0(round(((sum(covid_df[covid_df$DATE_OF_INTEREST >= "2021-03-01" & covid_df$DATE_OF_INTEREST <= "2021-10-05",]$DEATH_COUNT)-
+                                    sum(covid_df[covid_df$DATE_OF_INTEREST >= "2020-03-01" & covid_df$DATE_OF_INTEREST <= "2020-10-05",]$DEATH_COUNT))/
+                                   sum(covid_df[covid_df$DATE_OF_INTEREST >= "2020-03-01" & covid_df$DATE_OF_INTEREST <= "2020-10-05",]$DEATH_COUNT)*100),
+                                digits=2),"%"
+          ),
+          subtitle = tags$p("2020-2021 Percentage Changes of Death cases", style = "color:black"),
+          icon = icon('export', lib = 'glyphicon'),
+          color = "green"
+        )
+      })
+    
+    output$Coviddiffhospitalizations <- renderValueBox({
+      valueBox(
+        value =  paste0(round(((sum(covid_df[covid_df$DATE_OF_INTEREST >= "2021-03-01" & covid_df$DATE_OF_INTEREST <= "2021-10-05",]$HOSPITALIZED_COUNT)-
+                                  sum(covid_df[covid_df$DATE_OF_INTEREST >= "2020-03-01" & covid_df$DATE_OF_INTEREST <= "2020-10-05",]$HOSPITALIZED_COUNT))/
+                                 sum(covid_df[covid_df$DATE_OF_INTEREST >= "2020-03-01" & covid_df$DATE_OF_INTEREST <= "2020-10-05",]$HOSPITALIZED_COUNT)*100),
+                              digits=2),"%"
+        ),
+        subtitle = tags$p("2020-2021 Percentage Changes of Hospitalized cases", style = "color:black"),
+        icon = icon('export', lib = 'glyphicon'),
+        color = "green"
+      )
+    })
+    
+    output$CovidDataPlot <- renderPlot({
+      
+      dPlot <- ggplot() +
+        geom_point() +
+        geom_line(data=CovidData[CovidData$DATE_OF_INTEREST >= input$CovidDatesInput[1] &
+                                   CovidData$DATE_OF_INTEREST <= input$CovidDatesInput[2],], aes(x=DATE_OF_INTEREST,y=CASE_COUNT), color='red')+
+        geom_line(data=CovidData[CovidData$DATE_OF_INTEREST >= input$CovidDatesInput[1] &
+                                   CovidData$DATE_OF_INTEREST <= input$CovidDatesInput[2],], aes(x=DATE_OF_INTEREST,y=DEATH_COUNT), color='blue')+
+        geom_line(data=CovidData[CovidData$DATE_OF_INTEREST >= input$CovidDatesInput[1] &
+                                   CovidData$DATE_OF_INTEREST <= input$CovidDatesInput[2],], aes(x=DATE_OF_INTEREST,y=HOSPITALIZED_COUNT), color='black')
+        labs(x= "Date", y= "Cases")
+        {if(TRUE)dPlot + geom_line(data=CovidData[CovidData$DATE_OF_INTEREST >= input$CovidDatesInput[1] &
+                                                    CovidData$DATE_OF_INTEREST <= input$CovidDatesInput[2],], aes(x=DATE_OF_INTEREST,y=HOSPITALIZED_COUNT), color='black')
+        }
+      
+    })
+    
+    output$DistrictDataPlot <- renderPlot({
+      
+      dPlot <- ggplot() +
+        geom_point() +
+        geom_line(data=CovidData[CovidData$DATE_OF_INTEREST >= input$DistrictDatesInput[1] &
+                                   CovidData$DATE_OF_INTEREST <= input$DistrictDatesInput[2],], aes(x=DATE_OF_INTEREST,y=get(paste(input$DistrictInput,"_",input$CategoryInput))), color='red')
+       +labs(x= "Date", y= "Cases")
+    })
+    
   }
-
-
-
-
-
-
-
-
 
 
 

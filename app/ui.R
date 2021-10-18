@@ -12,7 +12,8 @@ library(DT)
 library(shinyBS)
 library(shinyjs)
 library(WDI)
-library(gganimate)
+##install.packages("gganimate")
+##library(gganimate)
 if (!require("leaflet")) {
   install.packages("leaflet")
   library(leaflet)
@@ -152,7 +153,7 @@ body <- dashboardBody(
              ## contents for the dashboard tab
              # 1.1 Value  Boxes ---------------------------
              div(class = 'scroller_anchor'),
-             div(class = 'scroller', ) ,
+             div(class = 'scroller') ,
              
              #TITLE
              h1(style = "text-align: center;","Evaluating Home Life During COVID-19"),
@@ -170,7 +171,7 @@ body <- dashboardBody(
                were stuck in their homes far longer than many were used to.  In this app, 
                using the data from the NYC Department of Health and Mental Hygiene & NYC Open Data and inspiration from
                the Mayor de Blasio' ThriveNYC, Mental Illness, and Domestic Violence programs, we offer a look at some
-               of the effects of COVID on domestic life."),
+               of the effects of COVID on domestic life.")
     ),
     
     #############################################################
@@ -180,7 +181,7 @@ body <- dashboardBody(
              ## contents for the dashboard tab
              # 1.1 Value  Boxes ---------------------------
              div(class = 'scroller_anchor'),
-             div(class = 'scroller', ) ,
+             div(class = 'scroller' ) ,
              
              #TITLE
              h1(style = "text-align: center;","COVID-19 in NYC"),
@@ -190,10 +191,68 @@ body <- dashboardBody(
              img(src = "https://c.files.bbci.co.uk/D505/production/_115033545_gettyimages-1226314512.jpg",
                  width = 500, style="display: block; margin-left: auto; margin-right: auto;"),
              br(),
+             fluidRow(
+               valueBoxOutput("CovidTotalCaseCount2020"),
+               valueBoxOutput("CovidTotalDeathCount2020"),
+               valueBoxOutput("CovidTotalHospitalizationCount2020")),
              br(),
+             fluidRow(
+               valueBoxOutput("Coviddiffcases"),
+               valueBoxOutput("Coviddiffdeaths"),
+               valueBoxOutput("Coviddiffhospitalizations")),
+             br(),
+             fluidRow(
+               #date chooser
+               h3('COVID_19 Data in NYC'),
+               h5('Red line stands for total covid cases. Blue line stands for death cases. Black line stands for hospitalized cases'),
+               column(6,
+                      dateRangeInput("CovidDatesInput", h3("Date range"),
+                                     start = "2020-02-29",
+                                     end = "2021-10-05",
+                                     max = "2021-10-05"
+                      )
+
+                              )
+               ),
              
-             #INTRO
-             h4("LOREM IPSUM"),
+             #output section
+             fluidRow(
+               br(),
+               br(),
+               plotOutput("CovidDataPlot"),
+               br(),
+               br()
+             ),
+             br(),
+             h3("COVID_19 in Different Districts of NYC"),
+             fluidRow(
+               #date chooser
+               column(6,
+                      selectInput("DistrictInput", h3("Choose a district"),
+                                  c("Bronx" = "BX",
+                                    "Brooklyn" = "BK",
+                                    "Manhattan" = "MN",
+                                    "Queens"="QN","Staten Island"="SI")
+                                  ),
+                      selectInput("CategoryInput", h3("Choose a category"),
+                                  c("Total cases" = "CASE_COUNT",
+                                    "Death cases" = "DEATH_COUNT",
+                                    "Hospitalized cases" = "HOSPITALIZED_COUNT") ),
+                      dateRangeInput("DistrictDatesInput", h3("Date range"),
+                                     start = "2020-02-29",
+                                     end = "2021-10-05",
+                                     max = "2021-10-05"
+                      )
+                      
+                      )
+             ),
+             fluidRow(
+               br(),
+               br(),
+               plotOutput("DistrictDataPlot"),
+               br(),
+               br()
+             )
     ),
     
     
@@ -204,7 +263,7 @@ body <- dashboardBody(
              ## contents for the dashboard tab
              # 1.1 Value  Boxes ---------------------------
              div(class = 'scroller_anchor'),
-             div(class = 'scroller', ) ,
+             div(class = 'scroller' ) ,
              
              h2("Domestic Violence Cases Over Time in NYC",style = "text-align: center;"),
              fluidRow(
@@ -238,13 +297,13 @@ body <- dashboardBody(
       div(class="outer",
           h3(" Domestic Violence Resources", align="center", style="color:#045a8d"),
           # map output
-          leafletOutput("res_map", width="100%", height=620),
+          leafletOutput("res_map", width="100%", height=620)
       ),
       #Map2 
       div(class="outer",
           h3(" Animal Resources", align="center", style="color:#045a8d"),
           # map output
-          leafletOutput("res_map2", width="100%", height=620),
+          leafletOutput("res_map2", width="100%", height=620)
       )
     ),
     
@@ -255,7 +314,7 @@ body <- dashboardBody(
             ## contents for the dashboard tab
             # 1.1 Value  Boxes ---------------------------
             div(class = 'scroller_anchor'),
-            div(class = 'scroller', ) ,
+            div(class = 'scroller') ,
             
             #intro
             fluidRow(
