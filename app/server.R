@@ -1,8 +1,10 @@
 #Load/Import packages
 
+#Load/Import packages
+
 #Packages Required
 packages <- c("readr", "tidyverse", "dplyr", "lubridate","igraph","shinydashboard",
-              "shiny","plyr","tidyr","ggplot2", "gganimate","highcharter","lubridate","stringr","withr","treemap", "DT","shinyBS", "shinyjs", "WDI",
+              "shiny","plyr","tidyr","ggplot2", "highcharter","lubridate","stringr","withr","treemap", "DT","shinyBS", "shinyjs", "WDI",
               "geosphere", "magrittr", "shinycssloaders","timevis", "comtradr", "memoise", "networkD3","promises","future")
 
 # Install packages not yet installed
@@ -189,7 +191,6 @@ server <-
         setView(lng = -73.935242, lat = 40.730610, zoom = 10)
     })
     
-    
     ########################################################################
     ## Dog Data
     ########################################################################
@@ -266,9 +267,9 @@ server <-
       {if(TRUE)dPlot + geom_line(data=CovidData[CovidData$DATE_OF_INTEREST >= input$dogDatesInput[1] &
                                                   CovidData$DATE_OF_INTEREST <= input$dogDatesInput[2],], aes(x=DATE_OF_INTEREST,y=CASE_COUNT), color='pink')
         }
-    })     
+    })
+    
   }
-
 
 
 
