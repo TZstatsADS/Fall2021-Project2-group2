@@ -61,11 +61,8 @@ siderbar <-
       menuItem("Resource Locations Directory", tabName = 'resource_dir', icon = icon("map-marker-alt") ),
       
       ## 5th Covid Data and Dog Licenses ----------
-      menuItem( "Pet Companionship", tabName = "pets", icon = icon('barcode'), startExpanded = F),
-      
-      ## 6th Call Center  -------------------------
-      menuItem("Call Center Data", tabName = 'call_centers', icon = icon('search') )
-    )
+      menuItem( "Pet Companionship", tabName = "pets", icon = icon('barcode'), startExpanded = F)
+      )
   )
 
 ## 3. body --------------------------------
@@ -277,7 +274,11 @@ body <- dashboardBody(
              fluidRow( column( width = 6,h4("Domestic Violence Case Reports By Borough", align = 'center'), highchartOutput('DVTotalCountsByYear') ),
                        column( width = 6,h4("Domestic Violence Case Reports by Category", align = 'center'), highchartOutput('DVCountsByCategory') )
              ),
-             h2("Visits to NYC HOPE Website - Outreach During COVID"),
+             h2("Visits to NYC HOPE Website - Outreach During COVID",style = "text-align: center;"),
+             fluidRow(
+                valueBoxOutput("PercDiffVisits"),
+               valueBoxOutput("PercDiffNewVisits")
+             ),
              fluidRow(highchartOutput('PageVisitsByYear')),
              fluidRow(highchartOutput('PageVisitsbyType'))
              
