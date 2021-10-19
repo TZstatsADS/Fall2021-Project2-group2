@@ -69,7 +69,7 @@ siderbar <-
 body <- dashboardBody( 
   ## 3.0. CSS styles in header ----------------------------
   tags$head(
-    tags$script("document.title = 'New Zealand Trade Intelligence Dashboard'"),
+    tags$script("document.title = 'Domestic Life During COVID'"),
     
     ### Styles 
     tags$style(HTML(".small-box {height: 65px}")),

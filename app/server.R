@@ -28,7 +28,7 @@ server <-
     ## I. Domestic Violence dashboard --------------------------------------
     #######################################################################
     # Domestic Violence Data Loading and Processing 
-    violence_df <- read_csv('family_violence_grouped.csv')
+    violence_df <- read_csv('../data/family_violence_grouped.csv')
     violence_year <- aggregate(. ~ Report_Year,select(violence_df, -Comm_Dist_Boro), FUN=sum)
     most_recent_totals <- violence_year %>% filter(Report_Year == max(Report_Year))
     prev_year_totals <-  violence_year %>% filter(Report_Year == max(Report_Year)-1)
@@ -120,11 +120,11 @@ server <-
     })
     
     #Bar Charts for Page Visits to HOPE Website 
-    page_visits <- read_csv("hope_webpage_visits.csv",col_types = cols(Date = col_date(format = "%m/%d/%y")))
+    page_visits <- read_csv("../data/hope_webpage_visits.csv",col_types = cols(Date = col_date(format = "%m/%d/%y")))
     agg_visits <- aggregate(. ~ year,select(page_visits, -Date), FUN=sum)
     
     #Import Covid Data
-    CovidData <- read_csv("COVID-19_Daily_Counts_of_Cases__Hospitalizations__and_Deaths.csv")
+    CovidData <- read_csv("../data/COVID-19_Daily_Counts_of_Cases__Hospitalizations__and_Deaths.csv")
     #Standardize date format
     CovidData <- CovidData %>% mutate(DATE_OF_INTEREST = mdy(DATE_OF_INTEREST))
     
@@ -174,7 +174,7 @@ server <-
         ) %>%
         hc_legend( layout = 'vertical', align = 'left', verticalAlign = 'top', floating = T, x = 100, y = 000 )
     })
-    visits_type <- read_csv("visits_by_group.csv")
+    visits_type <- read_csv("../data/visits_by_group.csv")
     output$PageVisitsbyType <-renderHighchart({
       highchart() %>%
         hc_exporting(enabled = TRUE, formAttributes = list(target = "_blank")) %>%
@@ -222,7 +222,7 @@ server <-
     ########################################################################
     ## I. Resource Directory Map --------------------------------------
     #######################################################################
-    resources_df <- read_csv("Mayor_s_Office_to_End_Domestic_and_Gender-Based_Violence__Resource_Directory.csv")
+    resources_df <- read_csv("../data/Mayor_s_Office_to_End_Domestic_and_Gender-Based_Violence__Resource_Directory.csv")
     output$res_map <- renderLeaflet({ 
       leaflet(options = leafletOptions(zoomControl = FALSE),
               data = resources_df) %>% addTiles() %>%
@@ -244,7 +244,7 @@ server <-
     
     #Import & process Data
     #Dog Data
-    NYC_Dog_Licensing_Dataset <- read_csv("NYC_Dog_Licensing_Dataset.csv", 
+    NYC_Dog_Licensing_Dataset <- read_csv("../data/NYC_Dog_Licensing_Dataset.csv", 
                                           col_types = cols(RowNumber = col_skip(), 
                                                            AnimalName = col_skip(), AnimalGender = col_skip(), 
                                                            AnimalBirthMonth = col_skip(), BreedName = col_skip(), 
@@ -256,6 +256,10 @@ server <-
     
     NYC_Dog_Licensing_Dataset <- count(NYC_Dog_Licensing_Dataset,
                                        "LicenseIssuedDate")
+    #Import Covid Data
+    CovidData <- read_csv("../data/COVID-19_Daily_Counts_of_Cases__Hospitalizations__and_Deaths.csv")
+    #Standardize date format
+    CovidData <- CovidData %>% mutate(DATE_OF_INTEREST = mdy(DATE_OF_INTEREST))
     
     #value boxes
     output$dogRecentTotals <- renderValueBox({
@@ -287,10 +291,12 @@ server <-
     
     #reactive code
     output$dogDataPlot <- renderPlot({
+      
       #PLOT FOR DOG LICENSES
       dPlot <- ggplot() +
         geom_point() +
         geom_line(data=NYC_Dog_Licensing_Dataset[NYC_Dog_Licensing_Dataset$LicenseIssuedDate >= input$dogDatesInput[1] & NYC_Dog_Licensing_Dataset$LicenseIssuedDate <= input$dogDatesInput[2],], aes(x=LicenseIssuedDate,y=freq), color='blue')+ 
+        
         #labels
         geom_vline(xintercept = as.numeric(as.Date("2020-03-22")), linetype=4,color='red') +
         geom_text(aes(x = as.Date("2020-03-22"), label="March 22 NYC PAUSE \n", y=5000), colour="red", angle=90, text=element_text(size=20)) +
@@ -305,10 +311,11 @@ server <-
         labs(x= "Date", y= "Cases/Applications") 
       
       #ADD DATA IF CHECKBOX TRUE  
-      {if(input$dogInput)dPlot + geom_line(data=CovidData[CovidData$DATE_OF_INTEREST >= input$dogDatesInput[1] &
+      {if(TRUE)dPlot + geom_line(data=CovidData[CovidData$DATE_OF_INTEREST >= input$dogDatesInput[1] &
                                                   CovidData$DATE_OF_INTEREST <= input$dogDatesInput[2],], aes(x=DATE_OF_INTEREST,y=CASE_COUNT), color='pink')
         }
     })
+    
     
   
 
@@ -318,7 +325,7 @@ server <-
     ## COVID_19 Data
     ########################################################################
     ##Import and process covid_19 data
-    covid_df <- read_csv("COVID-19_Daily_Counts_of_Cases__Hospitalizations__and_Deaths.csv")
+    covid_df <- read_csv("../data/COVID-19_Daily_Counts_of_Cases__Hospitalizations__and_Deaths.csv")
     covid_df <- covid_df %>% mutate(DATE_OF_INTEREST = mdy(DATE_OF_INTEREST))
     
     output$CovidTotalCaseCount2020 <- renderValueBox({
