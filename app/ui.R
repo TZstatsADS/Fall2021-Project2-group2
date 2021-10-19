@@ -224,36 +224,9 @@ body <- dashboardBody(
                br(),
                br()
              ),
-             br(),
-             h3("COVID_19 in Different Districts of NYC"),
-             fluidRow(
-               #date chooser
-               column(6,
-                      selectInput("DistrictInput", h3("Choose a district"),
-                                  c("Bronx" = "BX",
-                                    "Brooklyn" = "BK",
-                                    "Manhattan" = "MN",
-                                    "Queens"="QN","Staten Island"="SI")
-                                  ),
-                      selectInput("CategoryInput", h3("Choose a category"),
-                                  c("Total cases" = "CASE_COUNT",
-                                    "Death cases" = "DEATH_COUNT",
-                                    "Hospitalized cases" = "HOSPITALIZED_COUNT") ),
-                      dateRangeInput("DistrictDatesInput", h3("Date range"),
-                                     start = "2020-02-29",
-                                     end = "2021-10-05",
-                                     max = "2021-10-05"
-                      )
-                      
-                      )
-             ),
-             fluidRow(
-               br(),
-               br(),
-               plotOutput("DistrictDataPlot"),
-               br(),
-               br()
-             )
+             br()
+             
+             
     ),
     
     
