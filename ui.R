@@ -57,12 +57,12 @@ siderbar <-
       ## 3rd tab show the Domestic Violence dashboard -----------
       menuItem( "Domestic Violence Instances", tabName = 'dv_dashboard', icon = icon('dashboard') ),
       
-      ## 4th Map with Locations of Help Centers --------------
-      menuItem("Resource Locations Directory", tabName = 'resource_dir', icon = icon("map-marker-alt") ),
-      
       ## 5th Covid Data and Dog Licenses ----------
       menuItem( "Pet Companionship", tabName = "pets", icon = icon('barcode'), startExpanded = F)
-      )
+      ),
+    
+    ## 4th Map with Locations of Help Centers --------------
+    menuItem("Resource Locations Directory", tabName = 'resource_dir', icon = icon("map-marker-alt") )
   )
 
 ## 3. body --------------------------------
@@ -280,14 +280,16 @@ body <- dashboardBody(
       # Map 
       div(class="outer",
           h3(" Domestic Violence Resources", align="center", style="color:#045a8d"),
+          h5(" Locations where you can go for help or advice regarding Domestic Violence", align="center"),
           # map output
           leafletOutput("res_map", width="100%", height=620)
       ),
       #Map2 
       div(class="outer",
           h3(" Animal Resources", align="center", style="color:#045a8d"),
+          h5(" Locations where you can adopt Dogs and other pets", align="center"),
           # map output
-          leafletOutput("res_map2", width="100%", height=620)
+          leafletOutput("dog_res_map", width="100%", height=620)
       )
     ),
     

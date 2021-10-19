@@ -239,6 +239,27 @@ server <-
         setView(lng = -73.935242, lat = 40.730610, zoom = 10)
     })
     
+    
+    #doggg
+    dog_resources_df <- read_csv("data/animal_resources.csv")
+    output$dog_res_map <- renderLeaflet({ 
+      leaflet(options = leafletOptions(zoomControl = FALSE),
+              data = dog_resources_df) %>% addTiles() %>%
+        addMarkers(~LONGITUDE, ~LATITUDE, popup = paste(
+          "<b>Name:</b>", dog_resources_df$Location, "<br>",
+          "<b>Address:</b>", dog_resources_df$Address, "<br>")) %>%
+        htmlwidgets::onRender(
+          "function(el, x) {
+                    L.control.zoom({ position: 'bottomright' }).addTo(this)
+                }"
+        ) %>%
+        addProviderTiles("CartoDB.Voyager") %>%
+
+        setView(lng = -73.935242, lat = 40.730610, zoom = 10)
+    
+        
+    })
+    
     ########################################################################
     ## Dog Data
     ########################################################################
@@ -294,8 +315,10 @@ server <-
     })
     
     #reactive code
-    output$dogDataPlot <- renderPlot({
+    output$dogDataPlot <- renderPlot(
       
+      if(input$dogInput == FALSE) 
+        (
       #PLOT FOR DOG LICENSES
       dPlot <- ggplot() +
         geom_point() +
@@ -305,23 +328,45 @@ server <-
         
         #labels
         geom_vline(xintercept = as.numeric(as.Date("2020-03-22")), linetype=4,color='red') +
-        geom_text(aes(x = as.Date("2020-03-22"), label="March 22 NYC PAUSE \n", y=5000), colour="red", angle=90, text=element_text(size=20)) +
+        geom_text(aes(x = as.Date("2020-03-22"), label="March 22 NYC PAUSE \n", y=500), colour="red", angle=90, text=element_text(size=20)) +
         geom_vline(xintercept = as.numeric(as.Date("2020-06-08")), linetype=4,color='red') +
-        geom_text(aes(x = as.Date("2020-06-08"), label="June 8 PHASE 1 REOPEN \n", y=5000), colour="red", angle=90, text=element_text(size=20))+
+        geom_text(aes(x = as.Date("2020-06-08"), label="June 8 PHASE 1 REOPEN \n", y=500), colour="red", angle=90, text=element_text(size=20))+
         geom_vline(xintercept = as.numeric(as.Date("2020-06-22")), linetype=4,color='red') +
-        geom_text(aes(x = as.Date("2020-06-22"), label="June 22 PHASE 2 REOPEN \n", y=5000), colour="red", angle=90, text=element_text(size=20))+
+        geom_text(aes(x = as.Date("2020-06-22"), label="June 22 PHASE 2 REOPEN \n", y=500), colour="red", angle=90, text=element_text(size=20))+
         geom_vline(xintercept = as.numeric(as.Date("2020-07-06")), linetype=4,color='red') +
-        geom_text(aes(x = as.Date("2020-07-06"), label="July 6 PHASE 3 REOPEN \n", y=5000), colour="red", angle=90, text=element_text(size=20))+
+        geom_text(aes(x = as.Date("2020-07-06"), label="July 6 PHASE 3 REOPEN \n", y=500), colour="red", angle=90, text=element_text(size=20))+
         geom_vline(xintercept = as.numeric(as.Date("2020-07-20")), linetype=4,color='red') +
-        geom_text(aes(x = as.Date("2020-07-20"), label="July 20 PHASE 4 REOPEN \n", y=5000), colour="red", angle=90, text=element_text(size=20))+ 
+        geom_text(aes(x = as.Date("2020-07-20"), label="July 20 PHASE 4 REOPEN \n", y=500), colour="red", angle=90, text=element_text(size=20))+ 
         labs(x= "Date", y= "Cases/Applications") 
+        )
+        
       #ADD DATA IF CHECKBOX TRUE  
-      {if(TRUE)dPlot + geom_line(data=CovidData[CovidData$DATE_OF_INTEREST >= input$dogDatesInput[1] &
+      else if(input$dogInput == TRUE) 
+        (
+           dPlot <- ggplot() +
+           geom_point() +
+           #geom_line(data=NYC_Dog_Licensing_Dataset2[NYC_Dog_Licensing_Dataset2$date >= input$dogDatesInput[1] & NYC_Dog_Licensing_Dataset2$date <= input$dogDatesInput[2],], aes(x=names(NYC_Dog_Licensing_Dataset2)[1],y=names(NYC_Dog_Licensing_Dataset2)[2]), color='blue')+
+           geom_line(data=NYC_Dog_Licensing_Dataset2[NYC_Dog_Licensing_Dataset2$date >= input$dogDatesInput[1] &
+                                                       NYC_Dog_Licensing_Dataset2$date <= input$dogDatesInput[2],], aes(x=date,y=freq), color='blue')+
+           #labels
+           geom_vline(xintercept = as.numeric(as.Date("2020-03-22")), linetype=4,color='red') +
+           geom_text(aes(x = as.Date("2020-03-22"), label="March 22 NYC PAUSE \n", y=5000), colour="red", angle=90, text=element_text(size=20)) +
+           geom_vline(xintercept = as.numeric(as.Date("2020-06-08")), linetype=4,color='red') +
+           geom_text(aes(x = as.Date("2020-06-08"), label="June 8 PHASE 1 REOPEN \n", y=5000), colour="red", angle=90, text=element_text(size=20))+
+           geom_vline(xintercept = as.numeric(as.Date("2020-06-22")), linetype=4,color='red') +
+           geom_text(aes(x = as.Date("2020-06-22"), label="June 22 PHASE 2 REOPEN \n", y=5000), colour="red", angle=90, text=element_text(size=20))+
+           geom_vline(xintercept = as.numeric(as.Date("2020-07-06")), linetype=4,color='red') +
+           geom_text(aes(x = as.Date("2020-07-06"), label="July 6 PHASE 3 REOPEN \n", y=5000), colour="red", angle=90, text=element_text(size=20))+
+           geom_vline(xintercept = as.numeric(as.Date("2020-07-20")), linetype=4,color='red') +
+           geom_text(aes(x = as.Date("2020-07-20"), label="July 20 PHASE 4 REOPEN \n", y=5000), colour="red", angle=90, text=element_text(size=20))+ 
+           labs(x= "Date", y= "Cases/Applications")+
+           geom_line(data=CovidData[CovidData$DATE_OF_INTEREST >= input$dogDatesInput[1] &
                                                   CovidData$DATE_OF_INTEREST <= input$dogDatesInput[2],], aes(x=DATE_OF_INTEREST,y=CASE_COUNT,), color='pink',)
-        }
+
+        )
       
      
-    })
+    )
     
     
   
