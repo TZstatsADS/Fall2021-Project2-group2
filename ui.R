@@ -58,12 +58,11 @@ siderbar <-
       menuItem( "Domestic Violence Instances", tabName = 'dv_dashboard', icon = icon('dashboard') ),
       
       ## 5th Covid Data and Dog Licenses ----------
-      menuItem( "Pet Companionship", tabName = "pets", icon = icon('barcode'), startExpanded = F)
-      ),
+      menuItem( "Pet Companionship", tabName = "pets", icon = icon('barcode'), startExpanded = F),
     
     ## 4th Map with Locations of Help Centers --------------
     menuItem("Resource Locations Directory", tabName = 'resource_dir', icon = icon("map-marker-alt") )
-  )
+  ))
 
 ## 3. body --------------------------------
 body <- dashboardBody( 
